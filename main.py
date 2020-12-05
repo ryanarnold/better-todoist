@@ -1,5 +1,7 @@
 from todoist.api import TodoistAPI
 import time
+import logging
+
 
 def get_label_by_name(name):
     return [l for l in api.state['labels'] if l['name'] == name][0]
@@ -30,6 +32,8 @@ def remove_label(item, label):
     api.items.get_by_id(item['id']).update(labels=item_labels)
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
+    logging.info('hello')
 
     api = TodoistAPI('f0c26a6fb3e422ae93f0ad97ae895dce2c54078d')
     api.sync()
@@ -59,22 +63,22 @@ if __name__ == '__main__':
 
                 # Adds an @active label to the first subtask of the project if none exists yet
                 if active_label['id'] not in first_item['labels']:
-                    print('Adding @active to : "%s" (%s)' % (first_item['content'], first_item['id']))
+                    logging.info('Adding @active to : "%s" (%s)' % (first_item['content'], first_item['id']))
                     add_label(first_item, active_label)
 
                 # Remove @complete label if the project has subtasks
                 if complete_label['id'] in project['labels']:
-                    print('Remove @complete to : "%s" (%s)' % (project['content'], project['id']))
+                    logging.info('Remove @complete to : "%s" (%s)' % (project['content'], project['id']))
                     remove_label(project, complete_label)
             else:            
                 # Adds an @complete label to the project if it doesn't have any more active task
                 if complete_label['id'] not in project['labels']:
-                    print('Adding @complete to : "%s" (%s)' % (project['content'], project['id']))
+                    logging.info('Adding @complete to : "%s" (%s)' % (project['content'], project['id']))
                     add_label(project, complete_label)
 
         if len(api.queue):
-            print('%d changes queued for sync... commiting to Todoist.', len(api.queue))
+            logging.info('%d changes queued for sync... commiting to Todoist.', len(api.queue))
             api.commit()
         else:
-            print('No changes queued, skipping sync.')
+            logging.info('No changes queued, skipping sync.')
         time.sleep(5)
