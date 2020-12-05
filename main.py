@@ -1,4 +1,5 @@
 from todoist.api import TodoistAPI
+import time
 
 def get_label_by_name(name):
     return [l for l in api.state['labels'] if l['name'] == name][0]
@@ -7,6 +8,16 @@ def get_label_by_name(name):
 def get_project_subtasks(project_id, all_items):
     return [i for i in all_items if project_id == i['parent_id'] and i['checked'] == 0 and i['is_deleted'] == 0]
 
+
+def get_topmost_subtask(project_subtasks):
+    lowest_index = 1000
+    
+    # Identify the lowest index
+    for i in project_subtasks:
+        if i['child_order'] < lowest_index:
+            lowest_index = i['child_order']
+    
+    return [i for i in project_subtasks if i['child_order'] == lowest_index][0]
 
 def add_label(item, label):
     item_labels = item['labels']
@@ -44,7 +55,7 @@ if __name__ == '__main__':
             project_subtasks = get_project_subtasks(project['id'], all_items)
 
             if len(project_subtasks) > 0:
-                first_item = project_subtasks[0]
+                first_item = get_topmost_subtask(project_subtasks)
 
                 # Adds an @active label to the first subtask of the project if none exists yet
                 if active_label['id'] not in first_item['labels']:
@@ -61,5 +72,9 @@ if __name__ == '__main__':
                     print('Adding @complete to : "%s" (%s)' % (project['content'], project['id']))
                     add_label(project, complete_label)
 
-        api.commit()
-        print('Passing')
+        if len(api.queue):
+            print('%d changes queued for sync... commiting to Todoist.', len(api.queue))
+            api.commit()
+        else:
+            print('No changes queued, skipping sync.')
+        time.sleep(5)
