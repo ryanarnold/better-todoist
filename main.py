@@ -42,6 +42,7 @@ if __name__ == '__main__':
     project_label = get_label_by_name('project')
     active_label = get_label_by_name('active')
     complete_label = get_label_by_name('complete')
+    waiting_label = get_label_by_name('waiting')
 
     while True:
 
@@ -65,6 +66,15 @@ if __name__ == '__main__':
                 if active_label['id'] not in first_item['labels']:
                     logging.info('Adding @active to : "%s" (%s)' % (first_item['content'], first_item['id']))
                     add_label(first_item, active_label)
+                
+                # Adds a @waiting label to the project if its topmost subtask has a @waiting label
+                if waiting_label['id'] in first_item['labels']:
+                    logging.info('Adding @waiting to: "%s"' % project['id'])
+                    add_label(project, waiting_label)
+                # Remove @waiting label to the project if its topmost subtask does NOT have a @waiting label
+                elif waiting_label['id'] in project['labels']:
+                    logging.info('Removing @waiting from: "%s"' % project['id'])
+                    remove_label(project, waiting_label)
 
                 # Remove @complete label if the project has subtasks
                 if complete_label['id'] in project['labels']:
@@ -75,6 +85,11 @@ if __name__ == '__main__':
                 if complete_label['id'] not in project['labels']:
                     logging.info('Adding @complete to : "%s" (%s)' % (project['content'], project['id']))
                     add_label(project, complete_label)
+                
+                # Remove @waiting label to the project if its topmost subtask does NOT have a @waiting label
+                if waiting_label['id'] in project['labels']:
+                    logging.info('Removing @waiting from: "%s"' % project['id'])
+                    remove_label(project, waiting_label)
 
         if len(api.queue):
             logging.info('%d changes queued for sync... commiting to Todoist.', len(api.queue))
