@@ -63,7 +63,7 @@ if __name__ == '__main__':
                 first_item = get_topmost_subtask(project_subtasks)
 
                 # Adds an @active label to the first subtask of the project if none exists yet
-                if active_label['id'] not in first_item['labels']:
+                if active_label['id'] not in first_item['labels'] and first_item['due'] is None:
                     logging.info('Adding @active to : "%s" (%s)' % (first_item['content'], first_item['id']))
                     add_label(first_item, active_label)
                 
