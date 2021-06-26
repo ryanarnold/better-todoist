@@ -1,5 +1,6 @@
 from todoist.api import TodoistAPI
 import time
+import datetime
 import logging
 
 
@@ -50,6 +51,19 @@ if __name__ == '__main__':
 
         # Load all items
         all_items = api.state['items']
+
+        # Search through each item that has a parent task
+        for item in [i for i in all_items if i['parent_id'] is not None and i['checked'] == 1]:
+            parent = api.items.get_by_id(item['parent_id'])
+
+            if (parent['due'] is not None):
+                year, month, day = [int(x) for x in parent['due']['date'].split('-')]
+                today = datetime.date.today()
+                due = datetime.date(year, month, day)
+
+                if due > today:
+                    logging.info('Uncompleting : "%s" (%s)' % (item['content'], item['id']))
+                    api.items.get_by_id(item['id']).uncomplete()
 
         # Load all projects
         all_projects = [p for p in all_items if project_label['id'] in p['labels']]
